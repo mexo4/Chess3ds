@@ -1,4 +1,4 @@
-name: Build Chess3DS v1.1
+name: Build Chess3DS v1.2
 
 on:
   push:
@@ -13,15 +13,14 @@ jobs:
   test:
     name: Host tests
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: Chess3DS_ONE_UPLOAD_READY
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
+      - name: Apply Chess3DS v1.2 update
+        run: tar -xzf ../Chess3DS_v1_2_patch.tar.gz -C .
       - name: Run Chess3DS tests
         run: make -f Makefile.host test
 
@@ -29,30 +28,26 @@ jobs:
     name: Nintendo 3DS build
     needs: test
     runs-on: ubuntu-latest
-
     container:
       image: devkitpro/devkitarm:latest
-
     defaults:
       run:
         working-directory: Chess3DS_ONE_UPLOAD_READY
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
+      - name: Apply Chess3DS v1.2 update
+        run: tar -xzf ../Chess3DS_v1_2_patch.tar.gz -C .
       - name: Build 3DSX
         run: make -j2
-
       - name: Try CIA build
         shell: bash
         run: |
-          if command -v makerom >/dev/null 2>&1 && command -v bannertool >/dev/null 2>&1; then
-            make cia || echo "CIA build failed or is unavailable; keeping the valid 3DSX build."
+          if command -v cxitool >/dev/null 2>&1 && command -v makerom >/dev/null 2>&1; then
+            make cia || echo "CIA unavailable; keeping the valid 3DSX build."
           else
             echo "CIA tools unavailable; skipping CIA."
           fi
-
       - name: Prepare artifact
         shell: bash
         run: |
@@ -61,14 +56,10 @@ jobs:
           cp Chess3DS.3dsx artifact/
           if [ -f Chess3DS.smdh ]; then cp Chess3DS.smdh artifact/; fi
           if [ -f Chess3DS.cia ]; then cp Chess3DS.cia artifact/; fi
-          if [ -f README.md ]; then cp README.md artifact/; fi
-          if [ -f LICENSE ]; then cp LICENSE artifact/; fi
-          if [ -f SOURCE.md ]; then cp SOURCE.md artifact/; fi
-          if [ -f THIRD_PARTY.md ]; then cp THIRD_PARTY.md artifact/; fi
-
+          cp README.md LICENSE SOURCE.md THIRD_PARTY.md artifact/
       - name: Upload playable build
         uses: actions/upload-artifact@v4
         with:
-          name: Chess3DS-v1.0.1
+          name: Chess3DS-v1.2
           path: Chess3DS_ONE_UPLOAD_READY/artifact/
           if-no-files-found: error
