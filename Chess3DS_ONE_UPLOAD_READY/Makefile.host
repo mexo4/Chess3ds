@@ -1,0 +1,35 @@
+CXX ?= g++
+CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Werror -pthread
+INCLUDES := -Iinclude -Ivendor/stockfish/src
+HOST_BUILD := build-host
+
+CORE_SOURCES := source/chess/Position.cpp source/chess/Game.cpp
+STORAGE_SOURCES := source/platform/Storage.cpp
+ENGINE_SOURCES := source/engine/StockfishEngine.cpp source/engine/tbprobe_stub.cpp
+STOCKFISH_SOURCES := $(filter-out vendor/stockfish/src/main.cpp,$(wildcard vendor/stockfish/src/*.cpp))
+
+.PHONY: all test clean
+
+all: $(HOST_BUILD)/core_tests $(HOST_BUILD)/storage_tests $(HOST_BUILD)/engine_smoke
+
+$(HOST_BUILD):
+	mkdir -p $@
+
+$(HOST_BUILD)/core_tests: $(CORE_SOURCES) tests/core_tests.cpp | $(HOST_BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o $@
+
+$(HOST_BUILD)/storage_tests: $(STORAGE_SOURCES) tests/storage_tests.cpp | $(HOST_BUILD)
+	$(CXX) $(CXXFLAGS) -fno-exceptions $(INCLUDES) $^ -o $@
+
+$(HOST_BUILD)/engine_smoke: source/chess/Position.cpp $(ENGINE_SOURCES) tests/engine_smoke.cpp $(STOCKFISH_SOURCES) | $(HOST_BUILD)
+	$(CXX) $(CXXFLAGS) -DCHESS3DS_EMBEDDED -DNO_PREFETCH $(INCLUDES) $^ -o $@
+
+test: all
+	$(HOST_BUILD)/core_tests
+	@storage_test_dir=$$(mktemp -d /tmp/chess3ds-storage.XXXXXX); \
+		$(HOST_BUILD)/storage_tests "$$storage_test_dir"; \
+		status=$$?; rm -rf "$$storage_test_dir"; exit $$status
+	$(HOST_BUILD)/engine_smoke
+
+clean:
+	rm -rf $(HOST_BUILD)

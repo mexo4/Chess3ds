@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f161d"/>
+      <stop offset="1" stop-color="#1c2932"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="128" rx="12" fill="url(#bg)"/>
+  <path d="M0 0h64v64H0zM64 64h64v64H64z" fill="#263943" opacity=".55"/>
+  <circle cx="63" cy="64" r="47" fill="#16222a" stroke="#69be74" stroke-width="3"/>
+  <path d="M27 101h72v7H27zm8-11h56l5 11H30z" fill="#f5ecd8" stroke="#20262d" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M42 90c2-19 9-32 23-41l-5-17 18 9c12 5 20 16 20 29-10-5-20-7-30-2l-10 7 10 3c-2 9-11 14-26 12z" fill="#f5ecd8" stroke="#20262d" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="77" cy="54" r="3" fill="#20262d"/>
+  <text x="122" y="59" fill="#f7f1e2" font-family="sans-serif" font-size="29" font-weight="700">Chess3DS</text>
+  <text x="124" y="83" fill="#69be74" font-family="sans-serif" font-size="12" font-weight="600">FAST • OFFLINE • STOCKFISH</text>
+  <text x="124" y="103" fill="#9daab1" font-family="sans-serif" font-size="10">Built for Nintendo 3DS</text>
+</svg>
