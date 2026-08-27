@@ -49,6 +49,7 @@ int App::run() {
     storage_.initialize();
     storage_.loadSettings(settings_);
     storage_.loadStatistics(statistics_);
+    hasSavedGame_ = storage_.hasSavedGame();
     sound_.setEnabled(settings_.sound);
     // Sound and Stockfish are deliberately initialized only when first used.
     // Both may create platform services/threads, so the main menu must render
@@ -84,7 +85,7 @@ int App::run() {
 
 std::vector<App::MainAction> App::mainActions() const {
     std::vector<MainAction> actions;
-    if (storage_.hasSavedGame()) actions.push_back(MainAction::Continue);
+    if (hasSavedGame_) actions.push_back(MainAction::Continue);
     actions.insert(actions.end(), {MainAction::Cpu, MainAction::Local, MainAction::Puzzles,
                                    MainAction::Settings, MainAction::Statistics,
                                    MainAction::About, MainAction::Exit});
@@ -402,6 +403,7 @@ void App::resumeSavedGame() {
     std::string error;
     if (!storage_.loadGame(saved) || !game_.restore(saved.initialFen, saved.moves, &error)) {
         storage_.clearSavedGame();
+        hasSavedGame_ = false;
         showToast(tr("Nie można odczytać zapisu", "Could not load save"));
         return;
     }
@@ -724,7 +726,7 @@ void App::saveCurrentGame() {
     saved.incrementMs = incrementMs_;
     saved.initialFen = game_.initialFen();
     saved.moves = game_.uciHistory();
-    storage_.saveGame(saved);
+    if (storage_.saveGame(saved)) hasSavedGame_ = true;
 }
 
 void App::finalizeResult() {
@@ -742,6 +744,7 @@ void App::finalizeResult() {
         } else ++statistics_.cpuLosses;
     } else ++statistics_.localGames;
     storage_.clearSavedGame();
+    hasSavedGame_ = false;
     exportCurrentPgn();
     storage_.saveStatistics(statistics_);
     sound_.play(platform::SoundEffect::GameEnd);
@@ -978,7 +981,7 @@ void App::renderAbout() {
     renderer_.beginTop(colors.background);
     renderer_.logo(75, 80, 92, colors);
     renderer_.text("Chess3DS", 145, 44, 0.9f, colors.text);
-    renderer_.text("Version 1.0.1", 147, 86, 0.44f, colors.accent);
+    renderer_.text("Version 1.1.1", 147, 86, 0.44f, colors.accent);
     renderer_.text("mexo4", 147, 115, 0.46f, colors.muted);
     renderer_.text(tr("Lekki interfejs 2D przeznaczony również dla Old 3DS.",
                       "A lightweight 2D interface made for the Old 3DS too."),

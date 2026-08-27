@@ -35,10 +35,9 @@
 #include <pthread.h>
 
 #if defined(__3DS__)
-// Stockfish's recursive search needs a larger stack than the default 3DS
-// homebrew worker thread. Stockfish itself documents that deep searches need
-// more than 1 MiB, so use 2 MiB while staying within the Old 3DS budget.
-static const size_t TH_STACK_SIZE = 2 * 1024 * 1024;
+// Chess3DS caps thinking time and depth indirectly through short movetime searches.
+// One MiB is a safer Old 3DS compromise than the previous 2 MiB worker stack.
+static const size_t TH_STACK_SIZE = 1 * 1024 * 1024;
 #else
 static const size_t TH_STACK_SIZE = 8 * 1024 * 1024;
 #endif

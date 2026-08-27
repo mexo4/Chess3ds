@@ -62,6 +62,7 @@ private:
     // The engine is loaded on demand. This keeps the menu usable even if a
     // target-specific Stockfish initialization problem occurs.
     bool engineAvailable_{true};
+    bool hasSavedGame_{false};
     int menuIndex_{0};
     int setupIndex_{0};
     int settingsIndex_{0};

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <atomic>
 #include <deque>
+#include <new>
 #include <utility>
 
 namespace PSQT { void init(); }
@@ -26,10 +27,14 @@ struct StockfishEngine::Impl {
     Color searchSide{WHITE};
 };
 
-StockfishEngine::StockfishEngine() : impl_(new Impl) {}
+StockfishEngine::StockfishEngine() = default;
 StockfishEngine::~StockfishEngine() { shutdown(); }
 
 bool StockfishEngine::initialize() {
+    if (!impl_) {
+        impl_.reset(new (std::nothrow) Impl);
+        if (!impl_) return false;
+    }
     if (impl_->initialized) return true;
     if (impl_->initializationAttempted) return false;
     impl_->initializationAttempted = true;
@@ -74,7 +79,7 @@ int StockfishEngine::defaultThinkTimeMs(int level) {
 }
 
 bool StockfishEngine::start(const std::string& fen, int level, int thinkTimeMs) {
-    if (!impl_->initialized || impl_->thinking.load(std::memory_order_acquire)) return false;
+    if (!impl_ || !impl_->initialized || impl_->thinking.load(std::memory_order_acquire)) return false;
 
     Options["Skill Level"] = std::to_string(skillForLevel(level));
     impl_->states.reset(new std::deque<StateInfo>(1));
@@ -91,6 +96,7 @@ bool StockfishEngine::start(const std::string& fen, int level, int thinkTimeMs) 
 }
 
 bool StockfishEngine::poll(EngineResult& result) {
+    if (!impl_ || !impl_->initialized) return false;
     if (!impl_->thinking.load(std::memory_order_acquire) || Threads.empty()
         || Threads.main()->is_searching()) return false;
 
@@ -110,11 +116,11 @@ bool StockfishEngine::poll(EngineResult& result) {
 }
 
 bool StockfishEngine::isThinking() const {
-    return impl_->thinking.load(std::memory_order_acquire);
+    return impl_ && impl_->initialized && impl_->thinking.load(std::memory_order_acquire);
 }
 
 void StockfishEngine::stop() {
-    if (!impl_->initialized) return;
+    if (!impl_ || !impl_->initialized) return;
     if (impl_->thinking.load(std::memory_order_acquire)) {
         Threads.stop.store(true, std::memory_order_release);
         Threads.main()->wait_for_search_finished();

@@ -24,7 +24,7 @@ float ease(float value) {
 bool Renderer::initialize() {
     top_ = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     bottom_ = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-    textBuffer_ = C2D_TextBufNew(8192);
+    textBuffer_ = C2D_TextBufNew(2048);
     return top_ && bottom_ && textBuffer_;
 }
 

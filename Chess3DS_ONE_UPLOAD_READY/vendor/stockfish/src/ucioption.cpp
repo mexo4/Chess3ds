@@ -66,7 +66,7 @@ void init(OptionsMap& o) {
 #if defined(CHESS3DS_EMBEDDED)
   // Allocate conservatively before ThreadPool::set() starts the engine. The
   // desktop default is wasteful on a 128 MiB Old 3DS.
-  o["Hash"]                  << Option(2, 1, MaxHashMB, on_hash_size);
+  o["Hash"]                  << Option(1, 1, MaxHashMB, on_hash_size);
 #else
   o["Hash"]                  << Option(16, 1, MaxHashMB, on_hash_size);
 #endif

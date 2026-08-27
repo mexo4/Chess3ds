@@ -24,7 +24,7 @@ ICON            := icon.png
 
 ARCH        := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS      := -g -Wall -Wextra -O2 -mword-relocations -ffunction-sections $(ARCH)
-CFLAGS      += $(INCLUDE) -D__3DS__ -DCHESS3DS_EMBEDDED -DNO_PREFETCH
+CFLAGS      += $(INCLUDE) -D__3DS__ -DCHESS3DS_EMBEDDED -DNO_PREFETCH -DNDEBUG
 CXXFLAGS    := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17 -pthread
 ASFLAGS     := -g $(ARCH)
 LDFLAGS     := -specs=3dsx.specs -g $(ARCH) -pthread -Wl,-Map,$(notdir $*.map)

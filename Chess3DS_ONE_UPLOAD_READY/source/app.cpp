@@ -4,33 +4,48 @@
 #include <3ds.h>
 #include <citro2d.h>
 #include <citro3d.h>
+#include <new>
 
-// libctru defaults to a very small main-thread stack.  Chess3DS uses C++
-// containers and a sizeable UI state, so reserve enough room for Old 3DS too.
+// Keep the main-thread stack conservative on Old 3DS. The large App object is
+// allocated on the heap below, so the UI does not need a 1 MiB main stack.
 extern "C" {
-u32 __stacksize__ = 1024 * 1024;
+u32 __stacksize__ = 512 * 1024;
 }
 
 int main() {
-    chess3ds::platform::writeRuntimeStage("main");
     gfxInitDefault();
     chess3ds::platform::writeRuntimeStage("graphics");
+
     if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE)) {
         chess3ds::platform::writeRuntimeStage("citro3d_failed");
         gfxExit();
         return 1;
     }
-    if (!C2D_Init(C2D_DEFAULT_MAX_OBJECTS)) {
+
+    // Chess3DS draws far fewer than 4096 objects per frame. A smaller Citro2D
+    // pool reduces linear-memory pressure on Old 3DS without affecting the UI.
+    if (!C2D_Init(1024)) {
         chess3ds::platform::writeRuntimeStage("citro2d_failed");
         C3D_Fini();
         gfxExit();
         return 1;
     }
-    C2D_Prepare();
-    chess3ds::platform::writeRuntimeStage("app");
 
-    chess3ds::ui::App app;
-    const int result = app.run();
+    C2D_Prepare();
+    chess3ds::platform::writeRuntimeStage("app_alloc");
+
+    auto* app = new (std::nothrow) chess3ds::ui::App();
+    if (!app) {
+        chess3ds::platform::writeRuntimeStage("app_alloc_failed");
+        C2D_Fini();
+        C3D_Fini();
+        gfxExit();
+        return 1;
+    }
+
+    chess3ds::platform::writeRuntimeStage("app");
+    const int result = app->run();
+    delete app;
 
     C2D_Fini();
     C3D_Fini();
