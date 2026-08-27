@@ -14,9 +14,13 @@ jobs:
     name: Host tests
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: Chess3DS_ONE_UPLOAD_READY
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run Chess3DS tests
         run: make -f Makefile.host test
@@ -29,9 +33,13 @@ jobs:
     container:
       image: devkitpro/devkitarm:latest
 
+    defaults:
+      run:
+        working-directory: Chess3DS_ONE_UPLOAD_READY
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build 3DSX
         run: make -j2
@@ -40,14 +48,15 @@ jobs:
         shell: bash
         run: |
           if command -v makerom >/dev/null 2>&1 && command -v bannertool >/dev/null 2>&1; then
-            make cia || echo "CIA build skipped after failure; 3DSX build remains valid."
+            make cia || echo "CIA build failed or is unavailable; keeping the valid 3DSX build."
           else
-            echo "CIA tools unavailable in container; skipping CIA."
+            echo "CIA tools unavailable; skipping CIA."
           fi
 
       - name: Prepare artifact
         shell: bash
         run: |
+          rm -rf artifact
           mkdir -p artifact
           cp Chess3DS.3dsx artifact/
           if [ -f Chess3DS.smdh ]; then cp Chess3DS.smdh artifact/; fi
@@ -61,5 +70,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Chess3DS-v1.0.1
-          path: artifact/
+          path: Chess3DS_ONE_UPLOAD_READY/artifact/
           if-no-files-found: error
