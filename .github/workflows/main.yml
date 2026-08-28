@@ -1,4 +1,4 @@
-name: Build Chess3DS v1.4
+name: Build Chess3DS v1.5
 
 on:
   push:
@@ -13,12 +13,16 @@ jobs:
   test:
     name: Host tests
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Restore Chess3DS v1.4 source
-        run: tar -xzf Chess3DS_v1_4_payload.tar.gz
+      - name: Restore Chess3DS v1.5 source
+        shell: bash
+        run: |
+          rm -rf Chess3DS_ONE_UPLOAD_READY
+          tar -xzf Chess3DS_v1_5_REFERENCE_UI_payload.tar.gz
 
       - name: Run Chess3DS tests
         working-directory: Chess3DS_ONE_UPLOAD_READY
@@ -28,6 +32,7 @@ jobs:
     name: Nintendo 3DS build
     needs: test
     runs-on: ubuntu-latest
+
     container:
       image: devkitpro/devkitarm:latest
 
@@ -35,10 +40,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Restore Chess3DS v1.4 source
-        run: tar -xzf Chess3DS_v1_4_payload.tar.gz
+      - name: Restore Chess3DS v1.5 source
+        shell: bash
+        run: |
+          rm -rf Chess3DS_ONE_UPLOAD_READY
+          tar -xzf Chess3DS_v1_5_REFERENCE_UI_payload.tar.gz
 
-      - name: Build 3DSX
+      - name: Check 3DS texture tools
+        shell: bash
+        run: |
+          command -v tex3ds
+          tex3ds --version || true
+
+      - name: Build Chess3DS
         working-directory: Chess3DS_ONE_UPLOAD_READY
         run: make -j2
 
@@ -58,14 +72,22 @@ jobs:
         run: |
           rm -rf artifact
           mkdir -p artifact
+
           cp Chess3DS.3dsx artifact/
-          if [ -f Chess3DS.smdh ]; then cp Chess3DS.smdh artifact/; fi
-          if [ -f Chess3DS.cia ]; then cp Chess3DS.cia artifact/; fi
+
+          if [ -f Chess3DS.smdh ]; then
+            cp Chess3DS.smdh artifact/
+          fi
+
+          if [ -f Chess3DS.cia ]; then
+            cp Chess3DS.cia artifact/
+          fi
+
           cp README.md LICENSE SOURCE.md THIRD_PARTY.md artifact/
 
       - name: Upload playable build
         uses: actions/upload-artifact@v4
         with:
-          name: Chess3DS-v1.4
+          name: Chess3DS-v1.5
           path: Chess3DS_ONE_UPLOAD_READY/artifact/
           if-no-files-found: error
