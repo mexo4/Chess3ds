@@ -91,5 +91,4 @@ jobs:
           name: Chess3DS-v1.5.4
           path: Chess3DS_ONE_UPLOAD_READY/artifact/
           if-no-files-found: error
-          path: Chess3DS_ONE_UPLOAD_READY/artifact/
-          if-no-files-found: error
+         
